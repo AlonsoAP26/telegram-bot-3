@@ -76,9 +76,17 @@ async def logUserBot():
     spammer_group = int(os.getenv("SPAMMER_GROUP"))
 
     while True:
+        if not client.is_connected():
+            print("Reconectando a Telegram...")
+            try:
+                await client.connect()
+            except Exception as e:
+                print(f"No se pudo reconectar: {e}")
+                await asyncio.sleep(30)
+                continue
+
         groups_info = await getListOfGroups(client)
         messages_list = await getMessagesFromGroup(client, spammer_group)
-
         try:
             await client.send_message(
                 "@SpamEsteban",
@@ -114,13 +122,13 @@ async def logUserBot():
                             )
                             resultado = False
 
-                        if resultado:
-                            await client.send_message(
-                                os.getenv("LOGS_CHANNEL"),
-                                f"<b>Mensaje enviado a {i['group_id']}</b> - "
-                                f"<code>{i['group_name']}</code>",
-                                parse_mode="HTML",
-                            )
+#                        if resultado:
+#                            await client.send_message(
+#                                os.getenv("LOGS_CHANNEL"),
+#                                f"<b>Mensaje enviado a {i['group_id']}</b> - "
+#                                f"<code>{i['group_name']}</code>",
+#                               parse_mode="HTML",
+#                            )
 
                         await asyncio.sleep(3)
 
@@ -136,7 +144,10 @@ async def logUserBot():
             await asyncio.sleep(600)
 
         except Exception as error:
-            print(error)
+            print(f"Error: {error}")
+            print("Esperando 30 segundos para reintentar...")
+            await asyncio.sleep(30)
+            
 
     await client.disconnect()
 
